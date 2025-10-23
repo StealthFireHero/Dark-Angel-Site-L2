@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ligue 2 BKT - Réactions</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">⚽ Ligue 2 BKT</div>
+    <ul class="nav-links">
+      <li><a href="index.html">🏠 Accueil</a></li>
+      <li><a href="classement.html">📊 Classement</a></li>
+      <li><a href="transferts.html">💸 Transferts</a></li>
+      <li><a href="reactions.html">🎙️ Réactions</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero Banner -->
+  <header class="hero">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1>🎙️ Réagissez au match en cours</h1>
+        <p>Partagez vos émotions et votez pour vos favoris 🔥</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section Réactions -->
+  <section class="reactions-section">
+    <h2>💬 Chat en Direct</h2>
+
+    <div class="chat-container" id="chatContainer">
+      <!-- Messages générés dynamiquement ici -->
+    </div>
+
+    <!-- Formulaire d'envoi -->
+    <div class="chat-input">
+      <input type="text" id="chatMessage" placeholder="Écrivez votre réaction..." />
+      <button onclick="sendMessage()">Envoyer</button>
+    </div>
+
+    <!-- Section votes -->
+    <div class="votes">
+      <h3>Votez !</h3>
+      <button class="vote-btn" onclick="vote('but')">🥅 But préféré</button>
+      <button class="vote-btn" onclick="vote('joueur')">🏆 Joueur du match</button>
+      <p id="voteResult"></p>
+    </div>
+
+    <!-- Bulles réactions animées -->
+    <div class="reaction-bubbles">
+      <span>⚽</span>
+      <span>🔥</span>
+      <span>👏</span>
+      <span>🚀</span>
+      <span>😱</span>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Ligue 2 BKT | Tous droits réservés</p>
+  </footer>
+
+  <script>
+    // Messages simulés
+    const chatContainer = document.getElementById('chatContainer');
+
+    function addMessage(user, text) {
+      const div = document.createElement('div');
+      div.classList.add('chat-message');
+      div.innerHTML = `<strong>${user}</strong> : ${text}`;
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chatMessage');
+      if(input.value.trim() !== "") {
+        addMessage('Vous', input.value);
+        input.value = '';
+      }
+    }
+
+    // Votes
+    let votes = { but: 0, joueur: 0 };
+
+    function vote(type) {
+      votes[type]++;
+      document.getElementById('voteResult').innerText =
+        `Votes : But préféré ${votes.but} | Joueur du match ${votes.joueur}`;
+    }
+
+    // Génération de messages aléatoires pour l'ambiance
+    const users = ['Paul', 'Julie', 'Marc', 'Sophie', 'Lucas'];
+    const messages = ['Super but !', 'Quelle défense !', 'Allez Bordeaux !', 'Incroyable !', '⚡🔥'];
+
+    setInterval(() => {
+      const user = users[Math.floor(Math.random() * users.length)];
+      const msg = messages[Math.floor(Math.random() * messages.length)];
+      addMessage(user, msg);
+    }, 5000);
+  </script>
+
+</body>
+</html>
+ 

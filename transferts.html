@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ligue 2 BKT - Transferts</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">⚽ Ligue 2 BKT</div>
+    <ul class="nav-links">
+      <li><a href="index.html">🏠 Accueil</a></li>
+      <li><a href="classement.html">📊 Classement</a></li>
+      <li><a href="matchs.html">⚽ Matchs</a></li>
+      <li><a href="transferts.html" class="active">💸 Transferts</a></li>
+      <li><a href="reactions.html">🎙️ Réactions</a></li>
+    </ul>
+  </nav>
+
+  <!-- Header -->
+  <header class="hero">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1>💸 Transferts Ligue 2 BKT</h1>
+        <p>Suivez les derniers mouvements du mercato en temps réel 🚨</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section transferts -->
+  <section class="results">
+    <h2>📡 Transferts en direct</h2>
+    <div id="transferts-container" class="cards">
+      <p>Chargement des transferts...</p>
+    </div>
+  </section>
+
+  <!-- Iframe (site officiel en cas de blocage API) -->
+  <section class="iframe-section">
+    <h2>🌐 Source officielle Ligue 2 BKT</h2>
+    <iframe 
+      src="https://www.ligue2.fr/actualites/"
+      style="width:100%; height:600px; border:none; border-radius:12px;"
+      title="Transferts Ligue 2 BKT">
+    </iframe>
+    <p style="text-align:center; margin-top:10px; color:#aaa;">
+      Source : <a href="https://www.ligue2.fr/" target="_blank" style="color:#00ff88;">Ligue 2 BKT</a>
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Ligue 2 BKT | Tous droits réservés</p>
+  </footer>
+
+  <!-- Script Transferts -->
+  <script>
+    const API_URL = ""; // À remplacer par ton endpoint si tu obtiens une clé API (ex : SportMonks)
+    const API_KEY = ""; // Clé API si tu en as une
+
+    const container = document.getElementById("transferts-container");
+
+    async function fetchTransferts() {
+      container.innerHTML = "<p>Chargement...</p>";
+      try {
+        if (!API_URL || !API_KEY) {
+          // Mode fallback : données simulées
+          renderTransferts([
+            {
+              joueur: "Jean Dupont",
+              ancien: "AS Saint-Étienne",
+              nouveau: "Pau FC",
+              montant: "500k€",
+              date: "01/10/2025"
+            },
+            {
+              joueur: "Marc Leroy",
+              ancien: "Red Star FC",
+              nouveau: "Grenoble Foot 38",
+              montant: "1M€",
+              date: "02/10/2025"
+            },
+            {
+              joueur: "Lucas Martin",
+              ancien: "Montpellier HSC",
+              nouveau: "AS Nancy Lorraine",
+              montant: "Libre",
+              date: "03/10/2025"
+            }
+          ]);
+          return;
+        }
+
+        const response = await fetch(API_URL, {
+          headers: { "X-Auth-Token": API_KEY }
+        });
+        const data = await response.json();
+        renderTransferts(data.transfers || []);
+
+      } catch (error) {
+        console.error("Erreur lors du chargement des transferts :", error);
+        container.innerHTML = "<p>Erreur lors du chargement des transferts 😢</p>";
+      }
+    }
+
+    function renderTransferts(transferts) {
+      container.innerHTML = "";
+      transferts.forEach(t => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.innerHTML = `
+          <h3>👕 ${t.joueur}</h3>
+          <p>${t.ancien} ➡️ ${t.nouveau}</p>
+          <p>💰 ${t.montant || "N/A"} • 📅 ${t.date || "Date inconnue"}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    fetchTransferts();
+    setInterval(fetchTransferts, 60000); // mise à jour toutes les 60 secondes
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détails Club - Ligue 2 Live</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">⚽ Ligue 2 Live</div>
+    <ul class="nav-links">
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="classement.html">Classement</a></li>
+      <li><a href="matchs.html">Matchs</a></li>
+      <li><a href="transferts.html">Transferts</a></li>
+      <li><a href="blessures.html">Blessures</a></li>
+      <li><a href="reactions.html">Réactions</a></li>
+    </ul>
+  </nav>
+
+  <section id="clubInfo">
+    <h2>Chargement du club...</h2>
+  </section>
+
+  <section id="matches">
+    <h3>📅 Matchs</h3>
+    <ul id="matchList"></ul>
+  </section>
+
+  <section id="transfers">
+    <h3>🔄 Transferts</h3>
+    <ul id="transferList"></ul>
+  </section>
+
+  <script>
+    // Récupérer le club depuis l'URL (ex: ?team=asse-saint-etienne)
+    const params = new URLSearchParams(window.location.search);
+    const teamSlug = params.get("team");
+
+    // Charger les clubs
+    fetch("data/clubs.json")
+      .then(res => res.json())
+      .then(clubs => {
+        const club = clubs.find(c => c.slug === teamSlug);
+        if (club) {
+          document.getElementById("clubInfo").innerHTML = `
+            <h2 style="color:${club.color}">${club.name}</h2>
+            <p>ID club API : ${club.id}</p>
+          `;
+          // Ici, on pourrait appeler une API pour les matchs et transferts
+          loadMatches(club.id);
+          loadTransfers(club.id);
+        } else {
+          document.getElementById("clubInfo").innerHTML = "<h2>Club introuvable</h2>";
+        }
+      });
+
+    // ⚡ Exemple API Football-Data (factice ici)
+    function loadMatches(teamId) {
+      const matches = [
+        { date: "2025-10-02", opponent: "Metz", score: "2-1" },
+        { date: "2025-10-09", opponent: "Bordeaux", score: "à venir" }
+      ];
+      const matchList = document.getElementById("matchList");
+      matches.forEach(m => {
+        const li = document.createElement("li");
+        li.textContent = `${m.date} - vs ${m.opponent} (${m.score})`;
+        matchList.appendChild(li);
+      });
+    }
+
+    function loadTransfers(teamId) {
+      const transfers = [
+        { player: "Jean Dupont", from: "Caen", to: "ASSE", price: "2M€" },
+        { player: "Ali Traoré", from: "ASSE", to: "Sochaux", price: "Prêt" }
+      ];
+      const transferList = document.getElementById("transferList");
+      transfers.forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = `${t.player} : ${t.from} ➝ ${t.to} (${t.price})`;
+        transferList.appendChild(li);
+      });
+    }
+  </script>
+ 
+ <!-- Footer -->
+  <footer>
+ <p>&copy; 2025 Ligue 2 BKT | Tous droits réservés </p>
+  </footer>
+
+
+</body>
+</html>

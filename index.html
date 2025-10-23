@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ligue 2 BKT — Accueil</title>
+  <meta name="description" content="Ligue 2 BKT — Résultats, classements, transferts et actualités en direct. Interface pro et réactive." />
+  <meta name="theme-color" content="#0b0b0d" />
+
+  <!-- Perf / Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Styles principaux (séparé pour production) -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Fav / simple icon -->
+  <link rel="icon" href="images/favicon.png" />
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav class="navbar" role="navigation" aria-label="Main Navigation">
+    <div class="logo" aria-hidden="false">⚽ LIGUE 2 BKT</div>
+    <ul class="nav-links" role="menubar">
+      <li role="none"><a role="menuitem" href="index.html">🏠 Accueil</a></li>
+      <li role="none"><a role="menuitem" href="classement.html">📊 Classement</a></li>
+      <li role="none"><a role="menuitem" href="matchs.html">⚽ Matchs</a></li>
+      <li role="none"><a role="menuitem" href="transferts.html">💸 Transferts</a></li>
+      <li role="none"><a role="menuitem" href="reactions.html">🎙️ Réactions</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" role="banner" aria-label="Hero Ligue 2">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1>Ligue 2 BKT</h1>
+        <p class="subtitle">Résultats ⚡ Classements ⚽ Transferts 🔥 Réactions 🎙️</p>
+        <div class="hero-buttons">
+          <a href="classement.html" class="btn btn-primary">📊 Voir le classement</a>
+          <a href="reactions.html" class="btn btn-secondary">🎙️ Réagir</a>
+        </div>
+
+        <!-- LIVE MATCHS (header) -->
+        <div id="live-matches" class="live-matches" aria-live="polite">
+          <h3>🎯 Matchs en direct</h3>
+          <div id="matches-list" class="matches-list">
+            <!-- Contenu injecté par JS : cartes compactes -->
+            <p class="loading">Chargement des matchs...</p>
+          </div>
+          <p class="live-note" style="font-size:.85rem;color:#ccc;margin-top:.6rem;">
+            Si l'API est configurée, les matchs s'affichent ici en direct. Sinon fallback vers le site officiel.
+          </p>
+        </div>
+      </div>
+
+      <!-- Ballon animé -->
+      <img src="images/ballon.png" alt="" class="hero-ball" aria-hidden="true">
+    </div>
+  </header>
+
+  <main>
+    <!-- SECTION : Matchs du jour (détaillé) -->
+    <section id="matchs-du-jour" class="results" aria-labelledby="matchs-title">
+      <h2 id="matchs-title">⚽ Matchs du jour</h2>
+      <div id="matchs-container" class="cards">
+        <p>Chargement des matchs en cours...</p>
+      </div>
+    </section>
+
+    <!-- SECTION : Derniers Résultats (statique / fallback) -->
+    <section class="results" aria-labelledby="dernier-resultat">
+      <h2 id="dernier-resultat">⚡ Derniers Résultats</h2>
+      <div class="cards">
+        <article class="card"><h3>🔥 Metz 2 - 1 Caen</h3><p>Victoire arrachée dans une ambiance de folie</p></article>
+        <article class="card"><h3>⚽ Bordeaux 0 - 0 Sochaux</h3><p>Match serré, score nul</p></article>
+        <article class="card"><h3>⚡ Paris FC 3 - 2 Dijon</h3><p>Décision dans les arrêts de jeu</p></article>
+      </div>
+    </section>
+
+    <!-- SECTION : Actualités en direct (RSS -> proxy) -->
+    <section id="actualites-en-direct" aria-labelledby="news-title">
+      <h2 id="news-title">🔥 Actualités en direct</h2>
+      <div id="actualites-container" class="cards">
+        <p>Chargement des actualités...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2025 Ligue 2 BKT | Tous droits réservés | Site non officiel</p>
+  </footer>
+
+  <!-- SCRIPTS (defer) -->
+  <script>
+  /* =========================
+     CONFIG / INSTRUCTIONS
+     - Pour afficher LES VRAIS MATCHS via API Football-Data :
+       1) crée un compte sur https://www.football-data.org/
+       2) récupère ton token API
+       3) colle-le ci-dessous dans API_KEY
+     - Si tu laisses API_KEY vide, on affichera un fallback (iframe ou message)
+     - Pour RSS actualités : on utilise allorigins proxy (gratuit) pour contourner CORS
+  ========================= */
+  const API_KEY = ""; // <-- mets ta clé ici (ex: "6b7e9c....")
+
+  /* ---------- Helpers ---------- */
+  function formatTimeFromUTC(utcDate) {
+    try {
+      const d = new Date(utcDate);
+      return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    } catch(e) { return '-'; }
+  }
+
+  function createMatchCardCompact(match) {
+    const home = match.homeTeam.name;
+    const away = match.awayTeam.name;
+    // Use live score if present else fullTime
+    const homeScore = (match.score && (match.score.current && match.score.current.home !== undefined)) ? match.score.current.home : (match.score && match.score.fullTime && match.score.fullTime.home !== null ? match.score.fullTime.home : "-");
+    const awayScore = (match.score && (match.score.current && match.score.current.away !== undefined)) ? match.score.current.away : (match.score && match.score.fullTime && match.score.fullTime.away !== null ? match.score.fullTime.away : "-");
+    const status = match.status || "";
+    const time = formatTimeFromUTC(match.utcDate);
+
+    const el = document.createElement('div');
+    el.className = 'match-compact';
+    el.innerHTML = `
+      <div class="match-teams">
+        <span class="team">${home}</span>
+        <span class="score"><strong>${homeScore}</strong> - <strong>${awayScore}</strong></span>
+        <span class="team">${away}</span>
+      </div>
+      <div class="match-meta">
+        <span class="status">${status === 'LIVE' ? '🟢 En direct' : status === 'FINISHED' ? '🔴 Terminé' : '⏰ À venir'}</span>
+        <span class="time"> ${time}</span>
+      </div>
+    `;
+    return el;
+  }
+
+  async function loadMatchesInto(elementId, detailed=false) {
+    const container = document.getElementById(elementId);
+    container.innerHTML = '<p class="loading">Chargement en cours...</p>';
+
+    // Si tu as API_KEY -> appel direct Football-Data
+    if (API_KEY && API_KEY.trim() !== "") {
+      try {
+        const resp = await fetch('https://api.football-data.org/v4/competitions/FL2/matches', {
+          headers: { 'X-Auth-Token': API_KEY }
+        });
+        if (!resp.ok) throw new Error('API rate/permission/response error');
+
+        const json = await resp.json();
+        const matches = json.matches || [];
+        if (matches.length === 0) {
+          container.innerHTML = '<p>Aucun match disponible pour le moment ⚽</p>';
+          return;
+        }
+        container.innerHTML = '';
+        matches.forEach(m => {
+          const card = document.createElement('article');
+          card.className = 'card';
+          const home = m.homeTeam.name;
+          const away = m.awayTeam.name;
+          const homeScore = m.score.fullTime.home ?? "-";
+          const awayScore = m.score.fullTime.away ?? "-";
+          const status = m.status;
+          const time = formatTimeFromUTC(m.utcDate);
+
+          // live badge
+          const liveBadge = (status === 'LIVE') ? '<span class="badge live">EN DIRECT</span>' : '';
+
+          card.innerHTML = `
+            <h3 class="match-title">${home} <span class="score-highlight">${homeScore}</span> - <span class="score-highlight">${awayScore}</span> ${away} ${liveBadge}</h3>
+            <p class="muted">${status === 'LIVE' ? '🟢 En direct' : status === 'FINISHED' ? '🔴 Terminé' : '⏰ À venir'} • ${time}</p>
+            <p class="muted" style="font-size:.86rem">Date : ${new Date(m.utcDate).toLocaleDateString('fr-FR')}</p>
+          `;
+          container.appendChild(card);
+        });
+        return;
+      } catch (err) {
+        console.warn('Football-Data error -> fallback to iframe or site scrape:', err);
+        // continue to fallback below
+      }
+    }
+
+    // FALLBACK (no API key or error) : use iframe to official "matchs" page so user sees live info
+    // Display a compact iframe only if container is large enough
+    container.innerHTML = `
+      <div class="iframe-fallback">
+        <iframe src="https://www.ligue2.fr/matchs" title="Matchs Ligue 2" style="width:100%;height:520px;border:0;border-radius:12px"></iframe>
+        <p style="font-size:.9rem;color:#ccc;margin-top:.6rem;text-align:center;">
+          Source officielle : <a href="https://www.ligue2.fr/matchs" target="_blank" style="color:#00ff88">ligue2.fr</a>
+        </p>
+      </div>
+    `;
+  }
+
+  /* ---------- Actualités (RSS) ---------- */
+  async function loadNews() {
+    const container = document.getElementById('actualites-container');
+    container.innerHTML = '<p class="loading">Chargement des actualités...</p>';
+
+    // Flux RSS officiel (ex : https://www.ligue2.fr/rss/actualites.xml)
+    const rssUrl = 'https://www.ligue2.fr/rss/actualites.xml';
+
+    try {
+      // use allorigins proxy to avoid CORS issues
+      const proxy = 'https://api.allorigins.win/raw?url=';
+      const res = await fetch(proxy + encodeURIComponent(rssUrl));
+      if (!res.ok) throw new Error('RSS proxy error');
+      const text = await res.text();
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, 'text/xml');
+      const items = xml.querySelectorAll('item');
+      container.innerHTML = '';
+      let count = 0;
+      items.forEach(item => {
+        if (count >= 6) return;
+        const title = item.querySelector('title')?.textContent || 'Sans titre';
+        const link = item.querySelector('link')?.textContent || '#';
+        const pubDate = item.querySelector('pubDate')?.textContent || '';
+        const article = document.createElement('article');
+        article.className = 'card news-card';
+        article.innerHTML = `
+          <h3><a href="${link}" target="_blank" rel="noopener">${title}</a></h3>
+          <p class="muted">Publié le ${pubDate ? new Date(pubDate).toLocaleString('fr-FR') : '—'}</p>
+        `;
+        container.appendChild(article);
+        count++;
+      });
+      if (count === 0) container.innerHTML = '<p>Aucune actualité trouvée.</p>';
+    } catch (err) {
+      console.warn('RSS load error:', err);
+      container.innerHTML = '<p>Impossible de charger les actualités automatiquement. <a href="https://www.ligue2.fr" target="_blank">Consultez le site officiel</a>.</p>';
+    }
+  }
+
+  /* ---------- INIT ---------- */
+  document.addEventListener('DOMContentLoaded', () => {
+    // header compact list (shows compact cards if API available; fallback handled inside)
+    loadMatchesInto('matches-list', true);
+    // detailed section
+    loadMatchesInto('matchs-container', false);
+    // news
+    loadNews();
+
+    // update loops (refresh)
+    // refresh matches every 30s, news every 5 minutes
+    setInterval(() => loadMatchesInto('matches-list', true), 30000);
+    setInterval(() => loadMatchesInto('matchs-container', false), 30000);
+    setInterval(loadNews, 300000);
+  });
+  </script>
+
+  <!-- Petite amélioration pour l'accessibilité: focus styles -->
+  <style>
+    /* compact match item style */
+    .match-compact {
+      background: rgba(255,255,255,0.03);
+      padding: .6rem;
+      border-radius: 10px;
+      color: #fff;
+      margin-bottom: .5rem;
+      display:flex;
+      flex-direction:column;
+      gap:.3rem;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .match-compact .match-teams {display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-weight:600}
+    .match-compact .score {color:#ffd166}
+    .match-title .score-highlight { color:#ffd166; margin: 0 .4rem; }
+    .badge.live { background:#ff3b30; color:#fff; padding:4px 8px; border-radius:6px;margin-left:8px;font-weight:700;font-size:.8rem; }
+    .loading { color:#999; }
+    .muted { color:#bdbdbd; }
+    a { color:#ffd166; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .iframe-fallback iframe { background:#000; }
+    /* small responsive */
+    @media (max-width:720px){
+      .hero-content h1 { font-size:2.5rem; }
+      .hero-ball { width:80px; right:20px; bottom:20px; }
+    }
+  </style>
+
+</body>
+</html>

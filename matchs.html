@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ligue 2 BKT - Matchs en direct</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+ <nav class="navbar">
+  <div class="logo">⚽ LIGUE 2 BKT</div>
+  <ul class="nav-links">
+    <li><a href="index.html">🏠 Accueil</a></li>
+    <li><a href="classement.html">📊 Classement</a></li>
+    <li><a href="matchs.html">⚽ Matchs</a></li>
+    <li><a href="transferts.html">💸 Transferts</a></li>
+    <li><a href="reactions.html">🎙️ Réactions</a></li>
+  </ul>
+</nav>
+
+
+  <!-- Hero -->
+  <header class="hero small-hero">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1>📅 Matchs Ligue 2 BKT</h1>
+        <p>Scores, minutes et statuts mis à jour automatiquement ⚡</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section des matchs -->
+  <section class="matchs-section">
+    <h2>⚽ Matchs en direct</h2>
+    <div id="matchs-container" class="cards">
+      <p>Chargement des matchs en direct...</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Ligue 2 BKT | Tous droits réservés</p>
+  </footer>
+
+  <!-- Script Football Data API -->
+  <script>
+    // Clé API Football Data (crée ton compte sur https://www.football-data.org/)
+    const API_KEY = "7b67c9bffcf344859f650fb5895a2e80";
+
+    async function fetchMatchs() {
+      const container = document.getElementById("matchs-container");
+      container.innerHTML = "<p>Chargement en cours...</p>";
+
+      try {
+        // Requête officielle pour la Ligue 2 BKT (compétition FL2)
+        const response = await fetch("https://api.football-data.org/v4/competitions/FL2/matches", {
+          headers: { "X-Auth-Token": API_KEY }
+        });
+
+        const data = await response.json();
+
+        // Vérification des données
+        const matchs = data.matches || [];
+        if (matchs.length === 0) {
+          container.innerHTML = "<p>Aucun match disponible pour le moment ⚽</p>";
+          return;
+        }
+
+        // Effacer le contenu précédent
+        container.innerHTML = "";
+
+        // Parcours des matchs
+        matchs.forEach(match => {
+          const home = match.homeTeam.name;
+          const away = match.awayTeam.name;
+          const scoreHome = match.score.fullTime.home ?? "-";
+          const scoreAway = match.score.fullTime.away ?? "-";
+          const status = match.status;
+          const date = new Date(match.utcDate);
+          const time = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+          // Détermination du statut du match
+          let etat = "";
+          if (status === "LIVE") etat = "🟢 En direct";
+          else if (status === "FINISHED") etat = "🔴 Terminé";
+          else if (status === "TIMED" || status === "SCHEDULED") etat = "⏰ À venir";
+          else etat = "🕓 En attente";
+
+          // Création de la carte du match
+          const card = document.createElement("div");
+          card.classList.add("card");
+
+          // Ajout d’un effet spécial pour les matchs en direct
+          if (status === "LIVE") {
+            card.style.border = "2px solid #00ff88";
+            card.style.boxShadow = "0 0 15px rgba(0,255,136,0.5)";
+          }
+
+          card.innerHTML = `
+            <h3>${home} <span style="color:#00ff88;">${scoreHome}</span> - 
+            <span style="color:#00ff88;">${scoreAway}</span> ${away}</h3>
+            <p>${etat} • ${time}</p>
+            <p style="font-size:0.9em;color:#aaa;">Date : ${date.toLocaleDateString("fr-FR")}</p>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error("Erreur :", error);
+        container.innerHTML = "<p>Erreur lors du chargement des matchs 😢</p>";
+      }
+    }
+
+    // Rafraîchissement toutes les 30 secondes
+    fetchMatchs();
+    setInterval(fetchMatchs, 30000);
+  </script>
+
+</body>
+</html>
